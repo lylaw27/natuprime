@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Product, useProductGetListQuery } from "@/saleor/api"
+import { Product } from "@/saleor/api"
 type Props = Pick<Product, "name" | "thumbnail" | "pricing">;
 
 export default function ProductList({name,thumbnail,pricing}: Props){

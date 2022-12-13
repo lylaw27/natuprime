@@ -14,10 +14,10 @@ export default function Home() {
       <>
       <Navbar/>
       <div className="flex">
-        {productList.map( node => (
-          <ProductList key={node.node.id} {...node.node}/>
-          )
-          )}
+          {productList?.length > 0 &&
+          productList.map(({ node }) => (
+            <ProductList key={node.id} {...(node as Product)} />
+          ))}
       </div>
      <div>
 
