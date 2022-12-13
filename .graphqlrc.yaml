@@ -1,0 +1,15 @@
+schema: https://natuprime.saleor.cloud/graphql/
+documents: graphql/**/*.graphql
+extensions:
+  codegen:
+    overwrite: true
+    generates:
+      saleor/api.ts:
+        plugins:
+          - typescript
+          - typescript-operations
+          - typescript-react-apollo
+          - typescript-apollo-client-helpers
+      ./graphql.schema.json:
+        plugins:
+          - introspection

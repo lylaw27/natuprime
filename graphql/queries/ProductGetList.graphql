@@ -1,0 +1,25 @@
+query ProductGetList {
+  products(first: 3, channel: "default-channel") {
+    edges {
+      node {
+        id
+        name
+        thumbnail {
+          url
+        }
+        category {
+          name
+        }
+        pricing {
+          priceRange {
+            start {
+              gross {
+                amount
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
