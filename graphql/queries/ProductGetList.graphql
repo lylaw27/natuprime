@@ -10,9 +10,11 @@ query ProductGetList {
         category {
           name
         }
-        pricing {
-          priceRange {
-            start {
+        variants {
+          id
+          name
+          pricing {
+            price {
               gross {
                 amount
               }

@@ -1,7 +1,19 @@
 // components/ProductCollection.tsx
+import { useCheckoutFetchByTokenQuery } from "@/saleor/api";
 import Image from "next/image"
+import { useLocalStorage } from "react-use"
 
 export default function Navbar() {
+  const [token] = useLocalStorage('token');
+  const { data, loading, error } = useCheckoutFetchByTokenQuery({
+    variables: { checkoutToken: token },
+    skip: !token,
+  });
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error</div>;
+  const cartList = data?.checkout?.lines || [];
+  console.log(data)
+
  return(
   <div className="navbar bg-white p-0">
   <div className="flex-1 px-10">
@@ -34,6 +46,9 @@ export default function Navbar() {
       <div tabIndex={0} className="mt-3 card card-compact dropdown-content w-52 bg-base-100 shadow">
         <div className="card-body">
           <span className="font-bold text-lg">8 Items</span>
+          {cartList.map((items)=>
+            <div key={items?.variant?.product?.id}>{items?.variant?.product?.name}</div>
+          )}
           <span className="text-info">Subtotal: $999</span>
           <div className="card-actions">
             <button className="btn btn-primary btn-block">View cart</button>
