@@ -1,5 +1,5 @@
 // components/ProductCollection.tsx
-import { useCheckoutFetchByTokenQuery } from "@/saleor/api";
+import { useCheckoutFetchByTokenQuery, useCheckoutRemoveProductMutation } from "@/saleor/api";
 import Image from "next/image"
 import { useLocalStorage } from "react-use"
 
@@ -9,8 +9,7 @@ export default function Navbar() {
     variables: { checkoutToken: token },
     skip: !token,
   });
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error</div>;
+  const [CheckoutremoveProduct] = useCheckoutRemoveProductMutation();
   const cartList = data?.checkout?.lines || [];
   console.log(data)
 
@@ -43,11 +42,21 @@ export default function Navbar() {
           <span className="badge badge-sm indicator-item">8</span>
         </div>
       </label>
-      <div tabIndex={0} className="mt-3 card card-compact dropdown-content w-52 bg-base-100 shadow">
+      <div tabIndex={0} className="mt-3 card card-compact dropdown-content w-80 bg-base-100 shadow">
         <div className="card-body">
-          <span className="font-bold text-lg">8 Items</span>
+          <span className="font-bold text-lg">{cartList.length} Items</span>
           {cartList.map((items)=>
-            <div key={items?.variant?.product?.id}>{items?.variant?.product?.name}</div>
+            <div key={items?.variant?.product?.id} className="flex items-center h-16">
+              <div className="relative w-1/4 h-16">
+                <Image src={items?.variant?.product?.thumbnail!.url} fill alt=""/>
+              </div>
+              <div className="p-7 w-2/4">
+                {items?.variant?.product?.name}
+              </div>
+              <button onClick={()=>CheckoutremoveProduct({variables:{ checkoutToken:token, lineId: items?.variant?.product?.id}})} className="btn btn-circle btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
           )}
           <span className="text-info">Subtotal: $999</span>
           <div className="card-actions">
