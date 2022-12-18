@@ -1,7 +1,8 @@
 // components/ProductCollection.tsx
-import { useCheckoutFetchByTokenQuery, useCheckoutRemoveProductMutation } from "@/saleor/api";
-import Image from "next/image"
-import { useLocalStorage } from "react-use"
+import { useCheckoutFetchByTokenQuery, useProductUpdateVariantInCartMutation } from "@/saleor/api";
+import Image from "next/image";
+import {useLocalStorage} from "react-use";
+import { useSetState } from "react-use";
 
 export default function Navbar() {
   const [token] = useLocalStorage('token');
@@ -9,9 +10,16 @@ export default function Navbar() {
     variables: { checkoutToken: token },
     skip: !token,
   });
-  const [CheckoutremoveProduct] = useCheckoutRemoveProductMutation();
   const cartList = data?.checkout?.lines || [];
+  const [cart,setCart] = useSetState(cartList)
   console.log(data)
+  const [updateProductInCart] = useProductUpdateVariantInCartMutation();
+  const updateCart = async(lineId: string, quantity: number) =>{
+    await updateProductInCart({
+      variables:{ checkoutToken:token, lineId: lineId, quantity: quantity}
+    })
+    // setCart([...cartList,])
+  }
 
  return(
   <div className="navbar bg-white p-0">
@@ -53,8 +61,14 @@ export default function Navbar() {
               <div className="p-7 w-2/4">
                 {items?.variant?.product?.name}
               </div>
-              <button onClick={()=>CheckoutremoveProduct({variables:{ checkoutToken:token, lineId: items?.variant?.product?.id}})} className="btn btn-circle btn-outline">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              <button onClick={() => updateCart(items?.id, items?.quantity-1)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M0 12L24 12" /></svg>
+              </button>
+              <div className="w-10 text-center">
+              {items?.quantity}
+              </div>
+              <button onClick={() => updateCart(items?.id, items?.quantity+1)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M0 12L24 12M12 0L12 24" /></svg>
               </button>
             </div>
           )}

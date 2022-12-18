@@ -4,6 +4,7 @@ fragment CheckoutFragment on Checkout {
   email
   lines {
     id
+    quantity
     totalPrice {
       gross {
         amount

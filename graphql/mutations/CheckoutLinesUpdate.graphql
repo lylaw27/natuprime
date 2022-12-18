@@ -1,0 +1,18 @@
+mutation ProductUpdateVariantInCart($checkoutToken: UUID!, $lineId: ID!, $quantity: Int!) {
+  checkoutLinesUpdate(token: $checkoutToken, lines: [{ quantity: $quantity, lineId: $lineId }])
+    {
+    checkout {
+      lines {
+        id
+        variant {
+          id
+        }
+        quantity
+      }
+    }
+    errors {
+      field
+      message
+    }
+  }
+}
