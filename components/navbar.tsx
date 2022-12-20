@@ -1,8 +1,9 @@
 // components/ProductCollection.tsx
-import { useCheckoutFetchByTokenQuery, useProductUpdateVariantInCartMutation } from "@/saleor/api";
+import { useCheckoutFetchByTokenQuery, useProductUpdateVariantInCartMutation, CheckoutLine } from "@/saleor/api";
 import Image from "next/image";
-import {useLocalStorage} from "react-use";
-import { useSetState } from "react-use";
+import {useEffectOnce, useLocalStorage} from "react-use";
+import { useState } from "react";
+
 
 export default function Navbar() {
   const [token] = useLocalStorage('token');
@@ -10,17 +11,18 @@ export default function Navbar() {
     variables: { checkoutToken: token },
     skip: !token,
   });
-  const cartList = data?.checkout?.lines || [];
-  const [cart,setCart] = useSetState(cartList)
-  console.log(data)
+  let cartList = data?.checkout?.lines || [];
+  const [cart,setCart] = useState(cartList);
   const [updateProductInCart] = useProductUpdateVariantInCartMutation();
-  const updateCart = async(lineId: string, quantity: number) =>{
+  const updateCart = async(item: CheckoutLine) =>{
     await updateProductInCart({
-      variables:{ checkoutToken:token, lineId: lineId, quantity: quantity}
-    })
-    // setCart([...cartList,])
+      variables:{ checkoutToken: token, lineId: item.id, quantity: item.quantity}
+    });
+    let cartIndex = cartList.findIndex((obj => obj.id === item.id));
+    cartList[cartIndex] = item;
+    setCart(cartList)
   }
-
+  
  return(
   <div className="navbar bg-white p-0">
   <div className="flex-1 px-10">
@@ -47,27 +49,27 @@ export default function Navbar() {
       <label tabIndex={0} className="btn btn-ghost btn-circle">
         <div className="indicator">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          <span className="badge badge-sm indicator-item">8</span>
+          <span className="badge badge-sm indicator-item">{cartList.length}</span>
         </div>
       </label>
       <div tabIndex={0} className="mt-3 card card-compact dropdown-content w-80 bg-base-100 shadow">
         <div className="card-body">
           <span className="font-bold text-lg">{cartList.length} Items</span>
-          {cartList.map((items)=>
+          {cart.map((items) =>
             <div key={items?.variant?.product?.id} className="flex items-center h-16">
               <div className="relative w-1/4 h-16">
-                <Image src={items?.variant?.product?.thumbnail!.url} fill alt=""/>
+                <Image src={items?.variant?.product?.thumbnail?.url} fill alt=""/>
               </div>
               <div className="p-7 w-2/4">
                 {items?.variant?.product?.name}
               </div>
-              <button onClick={() => updateCart(items?.id, items?.quantity-1)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
+              <button onClick={() => updateCart(items as CheckoutLine)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M0 12L24 12" /></svg>
               </button>
               <div className="w-10 text-center">
               {items?.quantity}
               </div>
-              <button onClick={() => updateCart(items?.id, items?.quantity+1)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
+              <button onClick={() => updateCart(items as CheckoutLine)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M0 12L24 12M12 0L12 24" /></svg>
               </button>
             </div>
