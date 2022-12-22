@@ -1,26 +1,22 @@
 // components/ProductCollection.tsx
-import { useCheckoutFetchByTokenQuery, useProductUpdateVariantInCartMutation, CheckoutLine } from "@/saleor/api";
+import { useProductUpdateVariantInCartMutation, CheckoutLine } from "@/saleor/api";
 import Image from "next/image";
-import {useEffectOnce, useLocalStorage} from "react-use";
-import { useState } from "react";
-
+import {useLocalStorage} from "react-use";
+import { useContext } from "react";
+import { CartContext } from "pages/_app";
 
 export default function Navbar() {
+  const {cartContent,setCartContent} = useContext(CartContext);
   const [token] = useLocalStorage('token');
-  const { data, loading, error } = useCheckoutFetchByTokenQuery({
-    variables: { checkoutToken: token },
-    skip: !token,
-  });
-  let cartList = data?.checkout?.lines || [];
-  const [cart,setCart] = useState(cartList);
   const [updateProductInCart] = useProductUpdateVariantInCartMutation();
   const updateCart = async(item: CheckoutLine) =>{
     await updateProductInCart({
       variables:{ checkoutToken: token, lineId: item.id, quantity: item.quantity}
     });
-    let cartIndex = cartList.findIndex((obj => obj.id === item.id));
-    cartList[cartIndex] = item;
-    setCart(cartList)
+    let cartIndex = cartContent.findIndex((obj => obj.id === item.id));
+    let cartNewList = cartContent
+    cartNewList[cartIndex] = item;
+    setCartContent(cartNewList);
   }
   
  return(
@@ -49,16 +45,16 @@ export default function Navbar() {
       <label tabIndex={0} className="btn btn-ghost btn-circle">
         <div className="indicator">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          <span className="badge badge-sm indicator-item">{cartList.length}</span>
+          <span className="badge badge-sm indicator-item">{cartContent.length}</span>
         </div>
       </label>
       <div tabIndex={0} className="mt-3 card card-compact dropdown-content w-80 bg-base-100 shadow">
         <div className="card-body">
-          <span className="font-bold text-lg">{cartList.length} Items</span>
-          {cart.map((items) =>
+          <span className="font-bold text-lg">{cartContent.length} Items</span>
+          {cartContent.map((items) =>
             <div key={items?.variant?.product?.id} className="flex items-center h-16">
               <div className="relative w-1/4 h-16">
-                <Image src={items?.variant?.product?.thumbnail?.url} fill alt=""/>
+                <Image src={items?.variant?.product?.thumbnail!.url} fill alt=""/>
               </div>
               <div className="p-7 w-2/4">
                 {items?.variant?.product?.name}
