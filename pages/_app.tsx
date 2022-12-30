@@ -1,14 +1,17 @@
 import type { AppProps } from "next/app";
 import React from 'react'
 import { useLocalStorage, useEffectOnce } from "react-use";
-import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
+import { ApolloProvider, ApolloClient, InMemoryCache, makeVar } from "@apollo/client";
 import Script from 'next/script';
 import "../styles/globals.css";
 import { useCheckoutCreateMutation, CheckoutLine} from "@/saleor/api";
 
+export const cartVar = makeVar([])
+
+const cache = new InMemoryCache();
 const client = new ApolloClient({
-  uri: "https://natuprime.saleor.cloud/graphql/",
-  cache: new InMemoryCache(),
+  cache,
+  uri: "https://natuprime.saleor.cloud/graphql/"
 });
 
 const Root = ({ Component, pageProps}: AppProps)=>{
@@ -29,11 +32,10 @@ const Root = ({ Component, pageProps}: AppProps)=>{
 
 export default function MyApp(props: AppProps) {
   return (
-    <>
-    <Script src="https://kit.fontawesome.com/dbb3bd5296.js" crossOrigin="anonymous"/>
+
     <ApolloProvider client={client}>
       <Root {...props} />
     </ApolloProvider>
-    </>
+
   );
 }

@@ -2,7 +2,7 @@
 fragment CheckoutFragment on Checkout {
   id
   email
-  lines {
+  lines{
     id
     quantity
     totalPrice {

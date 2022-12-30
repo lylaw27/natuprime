@@ -2,29 +2,24 @@
 import { useProductUpdateVariantInCartMutation, useCheckoutFetchByTokenQuery, CheckoutLine } from "@/saleor/api";
 import Image from "next/image";
 import {useLocalStorage} from "react-use";
-import {useState,useEffect} from 'react';
+import { cartVar } from "pages/_app";
+import { useReactiveVar } from "@apollo/client";
 
 export default function Navbar() {
   const [token] = useLocalStorage('token');
+  const cartData = useReactiveVar(cartVar);
   const { data, loading, error } = useCheckoutFetchByTokenQuery({variables: { checkoutToken: token },skip: !token});
+  if(data){
+    let result = data?.checkout?.lines || [];
+    cartVar(result)
+  }
   let cartList = data?.checkout?.lines || [];
-  const [cart,setCart] = useState([]);
-  console.log(cart)
   const [updateProductInCart] = useProductUpdateVariantInCartMutation();
-  const updateCart = async(item: CheckoutLine) =>{
-    let cartIndex = cartList.findIndex((obj => obj.id === item.id));
-    let temp = [...cartList]
-    let num = {...temp[cartIndex]}
-    num = item.quantity+1;
-    console.log(temp)
-    setCart(temp)
+  const updateCart = async(id:string ,quantity:number) =>{
     await updateProductInCart({
-      variables:{ checkoutToken: token, lineId: item.id, quantity: item.quantity+1}
+      variables:{ checkoutToken: token, lineId: id, quantity: quantity}
     });
   }
-  useEffect(()=>{
-    setCart(cartList)
-  },[data])
  return(
   <div className="navbar bg-white p-0">
   <div className="flex-1 px-10">
@@ -57,21 +52,22 @@ export default function Navbar() {
       <div tabIndex={0} className="mt-3 card card-compact dropdown-content w-80 bg-base-100 shadow">
         <div className="card-body">
           <span className="font-bold text-lg">{cartList.length} Items</span>
-          {cart.map((items)=>
+          {cartData.map((items)=>
             <div key={items?.variant?.product?.id} className="flex items-center h-16">
               <div className="relative w-1/4 h-16">
                 <Image src={items?.variant?.product?.thumbnail!.url} fill alt=""/>
               </div>
               <div className="p-7 w-2/4">
                 {items?.variant?.product?.name}
+                {cartData}
               </div>
-              <button onClick={() => updateCart(items as CheckoutLine)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
+              <button onClick={() => updateCart(items.id,items.quantity-1)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M0 12L24 12" /></svg>
               </button>
               <div className="w-10 text-center">
               {items?.quantity}
               </div>
-              <button onClick={() => updateCart(items as CheckoutLine)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
+              <button onClick={() => updateCart(items.id,items.quantity+1)} className="btn btn-circle btn-outline border-box w-8 h-8 min-h-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M0 12L24 12M12 0L12 24" /></svg>
               </button>
             </div>

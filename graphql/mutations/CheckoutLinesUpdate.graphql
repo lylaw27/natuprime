@@ -2,7 +2,7 @@ mutation ProductUpdateVariantInCart($checkoutToken: UUID!, $lineId: ID!, $quanti
   checkoutLinesUpdate(token: $checkoutToken, lines: [{ quantity: $quantity, lineId: $lineId }])
     {
     checkout {
-      lines {
+      lines{
         id
         variant {
           id
